@@ -3,28 +3,35 @@
 NEList = GetNELstByType('BTS3900') + GetNELstByType('BTS3900 LTE') + GetNELstByType('BTS5900')
 # Loop through list
 for ne in NEList
+	Print(ne)
 	# Select only East Region NEs
 	if 'E' in ne
 		# Check if NE is online before connecting
 		if GetNEStatus(ne) == 1
+			ConnectNE(ne)
 			# Get LTE IP based on X2 interface
 			@LST X2:;
 			x2ParsedReport = ParseMMLRpt(GetMMLReport(0))
 			x2RecordNum = GetRecordNum(x2ParsedReport, 0)
 			# If X2 interface exists, then...
 			if x2RecordNum != 0
+				Print('X2 Interface Present!')
 				# Get X2 EPGROUP
 				upPlaneEndGroup = GetAttrValueByName(x2ParsedReport, 0, 'User Plane End Point Group ID', 0)
 				ClearMMLBuffer()
+				Print('EP Group ID: ' + upPlaneEndGroup)
 				SendMML('LST EPGROUP:EPGROUPID=' + upPlaneEndGroup + ';')
 				epGroupParsedReport = ParseMMLRpt(GetMMLReport(0))
 				# Get User Plane Host ID
 				upPlaneHostId = GetAttrValueByName(epGroupParsedReport, 0, 'User Plane Host List', 0)
 				ClearMMLBuffer()
+				Print('UP Host List ID: ' + upPlaneHostId)
 				SendMML('LST USERPLANEHOST:UPHOSTID=' + upPlaneHostId + ';')
 				upPlaneHostParsedReport = ParseMMLRpt(GetMMLReport(0))
 				# Get LTE UP Local IP
 				lteUpIp = GetAttrValueByName(upPlaneHostParsedReport, 0, 'Local IP Address', 0)
+				Print('Local IP: ' + lteUpIp)
+				ClearMMLBuffer()
 				SendMML('ADD TWAMPCLIENT:CLIENTID=0,LOCALIP="' + lteUpIp + '",PEERIP="172.18.75.2";')
 				SendMML('ADD TWAMPSENDER:CLIENTID=0,SENDERID=0,DSCP=46,PKTSIZETYPE=FIXED,PKTINTTYPE=FIXED;')
 			end
